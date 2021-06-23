@@ -1,0 +1,67 @@
+compute average using client streaming
+
+client will send numbers --> 10, 20, 30, 40, 50, 60
+server should keep computing averages and once the client is done sending messages, it should return response
+
+prev average, numbers appeared till now (n), current number (x)
+
+new average = (prev_avg*n + x)/(n+1)
+
+calculator proto
+rpc average (stream avgRequest) return (avgResponse)
+
+message avgRequest {
+	int32 num;
+}
+
+message avgResponse {
+	int32 result;
+}
+
+CalculatorClient
+countDownLatch(1);
+requestObserver = client.calculateRunningAverage(new StreamObserver<>{
+	onNext(){
+	//server sends a response only once
+	sout(val.getresult());
+	}
+
+	onCompleted(){
+	//server is done sending the response
+		countDownLatch.countDown();
+	}
+
+});
+
+
+
+requestObserver.onNext(10);
+requestObserver.onNext(20);
+requestObserver.onCompleted();
+
+CalculatorServer
+RequestObserver calculateRunningAverage(ResponseObserver) {
+	requestObserver = new StreamObserver <> {
+	prev_avg = 0;
+	n = 0;
+	curr_avg = 0;
+	onNext(val){
+	//client sends a number
+	x=val.getnum();
+	new_avg = (prev_avg*n + x)/ (n+1)
+	n++;
+	prev_avg = new_avg;
+	}
+
+	onCompleted(){
+	//client is done sending the message
+	Response.newBuilder().setResult(curr_avg).build();
+	responseObserver.onNext(response);
+	responseObserver.onCompleted();
+
+	}
+
+	}
+	return requestObserver;
+
+}
